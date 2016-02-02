@@ -87,6 +87,8 @@ toolbelt_daemon:
   build: ./toolbelt_daemon
   container_name: paas_toolbelt_daemon
   restart: always
+  links:
+    - etcd
   volumes:
     - /etc/farmer/docker:/root/.docker
     - /etc/farmer/gitkey:/root/.ssh
