@@ -1,3 +1,18 @@
+data:
+  container_name: paas_mysql_data
+  build: mysql/data
+  restart: always
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock
+    - /etc/farmer/db:/var/lib/mysql
+    - /etc/farmer/elk:/data
+    - /etc/farmer/etcd:/var/etcd/data
+    - /etc/farmer/revere_proxy/certs:/certs
+    - /etc/farmer/docker:/root/.docker
+    - /etc/farmer/gitkey:/root/.ssh
+  environment:
+    SERVICE_IGNORE: ignore
+
 mysql_api:
   container_name: paas_mysql_api
   build: mysql/api
@@ -17,15 +32,6 @@ mysql:
   volumes_from:
     - data
 
-data:
-  container_name: paas_mysql_data
-  build: mysql/data
-  restart: always
-  volumes:
-    - /etc/farmer/db:/var/lib/mysql
-  environment:
-    SERVICE_IGNORE: ignore
-
 etcd:
   container_name: paas_etcd_server
   image: quay.io/coreos/etcd:v2.2.1
@@ -38,8 +44,8 @@ etcd:
     - -listen-client-urls=http://0.0.0.0:2379
     - -advertise-client-urls=http://paas_etcd_server:2379
     - --debug=true
-  volumes:
-    - /etc/farmer/etcd:/var/etcd/data
+  volumes_from:
+    - data
   environment:
     SERVICE_IGNORE: ignore
 
@@ -50,8 +56,8 @@ registrator:
   command: -internal -ttl 11 -ttl-refresh 10 -resync 10 etcd://paas_etcd_server:2379/services
   links:
     - etcd
-  volumes:
-    - "/var/run/docker.sock:/tmp/docker.sock"
+  volumes_from:
+    - data
   environment:
     SERVICE_IGNORE: ignore
 
@@ -62,8 +68,8 @@ proxy:
     - etcd
   ports:
     - 80:80
-  volumes:
-    - /etc/farmer/revere_proxy/certs:/certs
+  volumes_from:
+    - data
   environment:
     ETCD_NODE: paas_etcd_server:2379
     SERVICE_IGNORE: ignore
@@ -89,8 +95,15 @@ toolbelt_daemon:
   restart: always
   links:
     - etcd
-  volumes:
-    - /etc/farmer/docker:/root/.docker
-    - /etc/farmer/gitkey:/root/.ssh
+  volumes_from:
+    - data
   environment:
     SERVICE_IGNORE: ignore
+
+logger:
+  image: nshou/elasticsearch-kibana
+  container_name: paas_logger
+  ports:
+    - 5601:5601
+  volumes_from:
+    - data
