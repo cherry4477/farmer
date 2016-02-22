@@ -15,7 +15,7 @@ var (
 )
 
 func Connect() {
-	protocol_host := strings.Split(os.Getenv("PAAS_MYSQL_SERVICE_PORT"), "://")
+	protocol_host := strings.Split(os.Getenv("PAAS_MYSQL_SERVER_PORT"), "://")
 
 	cs := fmt.Sprintf("%s:%s@%s(%s)/",
 		"root",

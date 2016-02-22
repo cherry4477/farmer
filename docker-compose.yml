@@ -1,5 +1,5 @@
 data:
-  container_name: paas_mysql_data
+  container_name: paas_data
   build: mysql/data
   restart: always
   volumes:
@@ -23,7 +23,7 @@ mysql_api:
     SERVICE_IGNORE: ignore
 
 mysql:
-  container_name: paas_mysql_service
+  container_name: paas_mysql_server
   image: mysql:5.6
   restart: always
   environment:
