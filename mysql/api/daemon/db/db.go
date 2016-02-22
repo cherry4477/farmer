@@ -6,7 +6,6 @@ import (
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
-	"strings"
 )
 
 var (
@@ -15,13 +14,11 @@ var (
 )
 
 func Connect() {
-	protocol_host := strings.Split(os.Getenv("PAAS_MYSQL_SERVER_PORT"), "://")
-
 	cs := fmt.Sprintf("%s:%s@%s(%s)/",
 		"root",
-		os.Getenv("MYSQL_ENV_MYSQL_ROOT_PASSWORD"),
-		protocol_host[0],
-		protocol_host[1],
+		os.Getenv("MYSQL_ROOT_PASSWORD"),
+		"tcp",
+		"mysql:3306",
 	)
 
 	DB, DB_ERROR = sql.Open("mysql", cs)

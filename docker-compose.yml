@@ -19,6 +19,7 @@ mysql_api:
   links:
     - mysql
   environment:
+    MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
     SERVICE_IGNORE: ignore
 
 mysql:
