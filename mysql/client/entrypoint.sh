@@ -16,7 +16,7 @@ if [ -z $DATABASE_NAME ]; then
 fi
 
 if [ ! -f $SERVER_CONFIG ]; then
-    RESPONSE="$(curl  -H "Content-Type: application/json" -X POST -d '{"database":"'"${DATABASE_NAME}"'"}' http://paas_mysql_api/create)"
+    RESPONSE="$(curl  -H "Content-Type: application/json" -X POST -d '{"database":"'"${DATABASE_NAME}"'"}' http://farmer_mysql_api/create)"
 
     DATABASE_NAME=`get_json ${RESPONSE} "database_name"`
     USERNAME=`get_json ${RESPONSE} "username"`
@@ -41,7 +41,7 @@ if [ ! /docker-entrypoint-initdb.d/.installed ]; then
     export $(cat $DATABASE_NAME)
     for f in /docker-entrypoint-initdb.d/*; do
         case "$f" in
-            *.sql) echo "running $f"; mysql -hpaas_mysql_server -u${USERNAME} -p${PASSWORD} -D${DATABASE_NAME} < "$f" ;;
+            *.sql) echo "running $f"; mysql -hfarmer_mysql_server -u${USERNAME} -p${PASSWORD} -D${DATABASE_NAME} < "$f" ;;
             *)     echo "ignoring $f" ;;
         esac
     done

@@ -31,7 +31,6 @@ func Close() error {
 	return DB.Close()
 }
 
-
 func CreateDatabase(dbName string) error {
 	if _, err := DB.Exec("CREATE DATABASE IF NOT EXISTS `" + dbName + "` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci"); err != nil {
 		return err

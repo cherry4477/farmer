@@ -1,7 +1,6 @@
 package api
 
 import (
-	"os"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,7 +9,7 @@ func Listen() {
 
 	registerRoutes(server)
 
-	server.Run(":" + os.Getenv("TOOLBELT_API_PORT"))
+	server.Run(":80")
 }
 
 func registerRoutes(server *gin.Engine) {

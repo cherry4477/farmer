@@ -1,5 +1,4 @@
 data:
-  container_name: paas_data
   build: mysql/data
   restart: always
   volumes:
@@ -14,7 +13,7 @@ data:
     SERVICE_IGNORE: ignore
 
 mysql_api:
-  container_name: paas_mysql_api
+  container_name: farmer_mysql_api
   build: mysql/api
   restart: always
   links:
@@ -23,7 +22,7 @@ mysql_api:
     SERVICE_IGNORE: ignore
 
 mysql:
-  container_name: paas_mysql_server
+  container_name: farmer_mysql_server
   image: mysql:5.6
   restart: always
   environment:
@@ -33,7 +32,7 @@ mysql:
     - data
 
 etcd:
-  container_name: paas_etcd_server
+  container_name: farmer_etcd_server
   image: quay.io/coreos/etcd:v2.2.1
   restart: always
   ports:
@@ -42,7 +41,7 @@ etcd:
     - -name=etcd
     - -data-dir=/var/etcd/data
     - -listen-client-urls=http://0.0.0.0:2379
-    - -advertise-client-urls=http://paas_etcd_server:2379
+    - -advertise-client-urls=http://farmer_etcd_server:2379
     - --debug=true
   volumes_from:
     - data
@@ -50,10 +49,10 @@ etcd:
     SERVICE_IGNORE: ignore
 
 registrator:
-  container_name: paas_registrator
+  container_name: farmer_registrator
   image: gliderlabs/registrator:v6
   restart: always
-  command: -internal -ttl 11 -ttl-refresh 10 -resync 10 etcd://paas_etcd_server:2379/services
+  command: -internal -ttl 11 -ttl-refresh 10 -resync 10 etcd://farmer_etcd_server:2379/services
   links:
     - etcd
   volumes_from:
@@ -62,7 +61,8 @@ registrator:
     SERVICE_IGNORE: ignore
 
 proxy:
-  container_name: paas_proxy_server
+  container_name: farmer_proxy_server
+  restart: always
   build: proxy
   links:
     - etcd
@@ -71,13 +71,12 @@ proxy:
   volumes_from:
     - data
   environment:
-    ETCD_NODE: paas_etcd_server:2379
+    ETCD_NODE: farmer_etcd_server:2379
     SERVICE_IGNORE: ignore
     MAIN_DOMAIN: ravaj.ir
-  restart: always
 
 browser:
-  container_name: paas_etcd_browser
+  container_name: farmer_etcd_browser
   image: buddho/etcd-browser
   restart: always
   ports:
@@ -85,13 +84,13 @@ browser:
   links:
     - etcd
   environment:
-    ETCD_HOST: paas_etcd_server
+    ETCD_HOST: farmer_etcd_server
     ETCD_PORT: 2379
     SERVICE_IGNORE: ignore
 
 toolbelt_daemon:
   build: ./toolbelt_daemon
-  container_name: paas_toolbelt_daemon
+  container_name: farmer_toolbelt_daemon
   restart: always
   links:
     - etcd
@@ -102,7 +101,8 @@ toolbelt_daemon:
 
 logger:
   image: nshou/elasticsearch-kibana
-  container_name: paas_logger
+  restart: always
+  container_name: farmer_logger
   ports:
     - 5601:5601
   volumes_from:

@@ -2,8 +2,8 @@ package toolbelt
 
 import (
 	"os"
-	"time"
 	"os/exec"
+	"io/ioutil"
 
 	"github.com/ravaj-group/farmer/toolbelt_daemon/daemon/api/request"
 	"github.com/ravaj-group/farmer/toolbelt_daemon/daemon/db"
@@ -11,16 +11,20 @@ import (
 
 
 func Create(req request.CreateRequest) {
-	codeDir := os.Getenv("TOOLBELT_TEMP_DIR") + "/" + time.Now().Format("20060102150405")
+	codeDir, err := ioutil.TempDir("", "toolbelt")
 
-	set(req.PodName, PodStateJson(PreDeploy, "Pod instantiation"))
+	if err != nil {
+		set(req.PodName, PodStateJson(Error, err.Error()))
+		return
+	}
+
+	set(req.PodName, PodStateJson(PreDeploy, "Cloning code..."))
 	if err := GitCloneBranch(req.RepoUrl, req.Pathspec, codeDir); err != nil {
 		set(req.PodName, PodStateJson(Error, err.Error()))
 		return
 	}
 
-	set(req.PodName, PodStateJson(Deploying, "Deploing " + req.PodName))
-
+	set(req.PodName, PodStateJson(Deploying, "Deploying pod [" + req.PodName + "]..."))
 	cmd := exec.Command("toolbelt", "pod", "deploy", req.PodName)
 	cmd.Dir    = codeDir
 	cmd.Stdout = os.Stdout
