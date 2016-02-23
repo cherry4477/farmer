@@ -11,7 +11,7 @@ get_json() {
 }
 
 if [ -z $DATABASE_NAME ]; then
-    echo "Please set DATABASE_NAME"
+    echo "Please set DATABASE_NAME environment variable"
     exit
 fi
 
@@ -19,12 +19,12 @@ if [ ! -f $SERVER_CONFIG ]; then
     RESPONSE="$(curl  -H "Content-Type: application/json" -X POST -d '{"database":"'"${DATABASE_NAME}"'"}' http://farmer_mysql_api/create)"
 
     DATABASE_NAME=`get_json ${RESPONSE} "database_name"`
-    USERNAME=`get_json ${RESPONSE} "username"`
-    PASSWORD=`get_json ${RESPONSE} "password"`
+    DATABASE_USERNAME=`get_json ${RESPONSE} "username"`
+    DATABASE_PASSWORD=`get_json ${RESPONSE} "password"`
 
     if [ -n "${DATABASE_NAME}" ]; then
-        echo "USERNAME=${USERNAME}" | tr -d '"' >> $SERVER_CONFIG
-        echo "PASSWORD=${PASSWORD}" | tr -d '"' >> $SERVER_CONFIG
+        echo "DATABASE_USERNAME=${DATABASE_USERNAME}" | tr -d '"' >> $SERVER_CONFIG
+        echo "DATABASE_PASSWORD=${DATABASE_PASSWORD}" | tr -d '"' >> $SERVER_CONFIG
         echo "DATABASE_NAME=${DATABASE_NAME}" | tr -d '"' >> $SERVER_CONFIG
 
         echo "Database Credentials:"
