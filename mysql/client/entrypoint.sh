@@ -38,10 +38,10 @@ if [ ! -f $SERVER_CONFIG ]; then
 fi
 
 if [ ! /docker-entrypoint-initdb.d/.installed ]; then
-    export $(cat $DATABASE_NAME)
+    export $(cat ${DATABASE_NAME})
     for f in /docker-entrypoint-initdb.d/*; do
         case "$f" in
-            *.sql) echo "running $f"; mysql -hfarmer_mysql_server -u${USERNAME} -p${PASSWORD} -D${DATABASE_NAME} < "$f" ;;
+            *.sql) echo "running $f"; mysql -hfarmer_mysql_server -u${DATABASE_USERNAME} -p${DATABASE_PASSWORD} -D${DATABASE_NAME} < "$f" ;;
             *)     echo "ignoring $f" ;;
         esac
     done
