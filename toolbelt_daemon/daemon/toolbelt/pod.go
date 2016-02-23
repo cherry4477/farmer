@@ -12,6 +12,7 @@ import (
 
 func Create(req request.CreateRequest) {
 	codeDir, err := ioutil.TempDir("", "toolbelt")
+	defer exec.Command("rm -rf", codeDir).Run()
 
 	if err != nil {
 		set(req.PodName, PodStateJson(Error, err.Error()))
@@ -40,9 +41,9 @@ func Create(req request.CreateRequest) {
 
 	if err := cmd.Run(); err != nil {
 		set(req.PodName, PodStateJson(Error, err.Error()))
+		return
 	}
 
-	exec.Command("rm -rf", codeDir).Run()
 	set(req.PodName, PodStateJson(Success, "Done"))
 }
 
