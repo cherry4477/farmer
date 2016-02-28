@@ -1,9 +1,18 @@
 {{ range $service := lsdir "/services" }}
-    {{ if ls (printf "/services/%s/http" $service) }}
-        upstream backend_{{ base $service }} {
+    {{ $hasHttp := gets (printf "/services/%s/http/*" $service) }}{{ $hasHttps := gets (printf "/services/%s/https/*" $service) }}
+    {{ if or $hasHttp $hasHttps }}
+        {{ if $hasHttp }}
+        upstream backend_{{ base $service }}_http {
             least_conn;{{range getvs (printf "/services/%s/http/*" $service)}}
             server {{.}};{{end}}
         }
+        {{ end }}
+        {{ if $hasHttps }}
+        upstream backend_{{ base $service }}_https {
+            least_conn;{{range getvs (printf "/services/%s/https/*" $service)}}
+            server {{.}};{{end}}
+        }
+        {{ end }}
 
         server {
             listen 80;
@@ -14,7 +23,12 @@
             client_max_body_size 100M;
 
             location / {
-                proxy_pass       http://backend_{{base $service}};
+                {{ if $hasHttp }}
+                proxy_pass       http://backend_{{ base $service }}_http;
+                {{ else }}{{ if $hasHttps }}
+                proxy_pass       https://backend_{{ base $service }}_https;
+                proxy_ssl_verify off;
+                {{ end }}{{ end }}
                 proxy_redirect   off;
                 proxy_set_header Host            $host;
                 proxy_set_header X-Real-IP       $remote_addr;
@@ -23,7 +37,7 @@
             }
         }
 
-        {{ if exists (printf "/certs/%s/ssl.crt" $service) }}
+        {{ if exists (printf "/services/%s/ssl" $service) }}
         server {
             listen 443;
 
@@ -41,7 +55,12 @@
             client_max_body_size 100M;
 
             location / {
-                proxy_pass       http://backend_{{ base $service }};
+                {{ if $hasHttps }}
+                proxy_pass       https://backend_{{ base $service }}_https;
+                {{ else }}{{ if $hasHttp }}
+                proxy_pass       http://backend_{{ base $service }}_http;
+                proxy_ssl_verify off;
+                {{ end }}{{ end }}
                 proxy_redirect   off;
                 proxy_set_header Host              $host;
                 proxy_set_header X-Real-IP         $remote_addr;

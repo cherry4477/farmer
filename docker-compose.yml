@@ -123,6 +123,7 @@ mailer:
     - /etc/farmer/mailer:/data
   environment:
     SERVICE_80_NAME: mailer/http
+    SERVICE_443_NAME: mailer/https
   ports:
     - 80
     - 443
