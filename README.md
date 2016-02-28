@@ -14,6 +14,11 @@ If you want to run a Farmer instance on a remote docker engine you need to confi
 ## Usage
 To talk to a farmer instance you need to run `docker-compose`. (If your docker engine is on a remote server you need to set appropriate environment variables)
 
+## How to use?
+[TODO] Write about how to prepare a docker-compose.yml to use with `toolbelt` and `Farmer`.
+[TODO] Write about how to manage pod domains.
+[TODO] Write about how to setup a SSL-enabled pod.
+
 ## Security
 To protect some internal services such as **Logger**, **etcd**, etc; you have to protect their open ports.
 ```sh

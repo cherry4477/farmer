@@ -1,30 +1,20 @@
 {{ range $service := lsdir "/services" }}
-    {{ $hasHttp := ls (printf "/services/%s/http" $service) }}{{ $hasHttps := ls (printf "/services/%s/https" $service) }}
-    {{ if or $hasHttp $hasHttps }}
-
-        {{ if $hasHttp }}
-        upstream backend_{{ base $service }}_normal {
+    {{ if ls (printf "/services/%s/http" $service) }}
+        upstream backend_{{ base $service }} {
             least_conn;{{range getvs (printf "/services/%s/http/*" $service)}}
             server {{.}};{{end}}
         }
-        {{ end }}
 
-        {{ if $hasHttps }}
-        upstream backend_{{ base $service }}_secure {
-            least_conn;
-            {{ range getvs (printf "/services/%s/https/*" $service) }}
-            server {{.}};{{end}}
-        }
-        {{ end }}
-
-        {{ if ls (printf "/services/%s/http" $service) }}
         server {
             listen 80;
+
             {{ range getvs (printf "/services/%s/domains/*" $service) }}
             server_name {{.}};{{end}}
 
+            client_max_body_size 100M;
+
             location / {
-                proxy_pass http://backend_{{base $service}}_normal;
+                proxy_pass http://backend_{{base $service}};
                 proxy_redirect off;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
@@ -32,23 +22,32 @@
                 proxy_set_header X-Service-Name $service;
             }
         }
-        {{ end }}
 
-        {{ if ls (printf "/services/%s/https" $service) }}
+        {{ if ls (printf "/services/%s/ssl" $service) }}
         server {
             listen 443 ssl;
 
             {{ range getvs (printf "/services/%s/domains/*" $service) }}
             server_name {{.}};{{end}}
+
+            ssl_certificate {{ getv (printf "/services/%s/ssl/certificate_path" $service) }};
+            ssl_certificate_key {{ getv (printf "/services/%s/ssl/key_path" $service) }};
+            ssl_protocols  SSLv2 SSLv3 TLSv1;
+            ssl_session_timeout 5m;
+
             client_max_body_size 100M;
 
             location / {
-                proxy_pass https://backend_{{base $service}}_secure;
-                proxy_redirect off;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Service-Name $service;
+                proxy_pass       http://backend_{{base $service}};
+                proxy_redirect   off;
+                proxy_set_header Host             $host;
+                proxy_set_header X-Real-IP        $remote_addr;
+                proxy_set_header X-Forwarded-For  $proxy_add_x_forwarded_for;
+                proxy_set_header X-Service-Name   {{ $service }};
+                proxy_set_header X-Client-Verify  SUCCESS;
+                proxy_set_header X-Client-DN      $ssl_client_s_dn;
+                proxy_set_header X-SSL-Subject    $ssl_client_s_dn;
+                proxy_set_header X-SSL-Issuer     $ssl_client_i_dn;
             }
         }
         {{ end }}
