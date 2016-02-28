@@ -2,11 +2,12 @@ data:
   build: mysql/data
   restart: always
   volumes:
+    - /etc/localtime:/etc/localtime:ro
     - /var/run/docker.sock:/tmp/docker.sock
     - /etc/farmer/db:/var/lib/mysql
-    - /etc/farmer/elk:/data
+    - /etc/farmer/logger/elasticsearch:/var/lib/elasticsearch
     - /etc/farmer/etcd:/var/etcd/data
-    - /etc/farmer/revere_proxy/certs:/certs
+    - /etc/farmer/proxy/certs:/certs
     - /etc/farmer/docker:/root/.docker
     - /etc/farmer/gitkey:/root/.ssh
   environment:
@@ -69,6 +70,7 @@ proxy:
     - etcd
   ports:
     - 80:80
+    - 443:443
   volumes_from:
     - data
   environment:
@@ -104,7 +106,28 @@ logger:
   image: nshou/elasticsearch-kibana
   restart: always
   container_name: farmer_logger
+  environment:
+    SERVICE_IGNORE: ignore
   ports:
     - 5601:5601
   volumes_from:
     - data
+
+mailer:
+  image: analogic/poste.io
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/farmer/mailer:/data
+  environment:
+    SERVICE_80_NAME: mailer/http
+    SERVICE_443_NAME: mailer/https
+  ports:
+    - 80
+    - 443
+    - 25:25
+    - 110:110
+    - 143:143
+    - 465:465
+    - 587:587
+    - 993:993
+    - 995:995

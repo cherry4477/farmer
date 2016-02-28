@@ -1,50 +1,61 @@
 {{ range $service := lsdir "/services" }}
-{{ $hasHttp := ls (printf "/services/%s/http" $service) }}{{ $hasHttps := ls (printf "/services/%s/https" $service) }}
-{{ if or $hasHttp $hasHttps }}
-    upstream backend_{{ base $service }} {
-        least_conn;{{range getvs (printf "/services/%s/http/*" $service)}}
-        server {{.}};{{end}}
-        {{ range getvs (printf "/services/%s/https/*" $service) }}
-        server {{.}};{{end}}
-    }
-    {{ range $tenant := lsdir (printf "/services/%s/tenants" $service) }}{{ if ls (printf "/services/%s/http" $service) }}
-    server {
-        listen 80;
-        {{ range getvs (printf "/services/%s/tenants/%s/domains/*" $service $tenant) }}
-        server_name {{.}};{{end}}
+    {{ $hasHttp := ls (printf "/services/%s/http" $service) }}{{ $hasHttps := ls (printf "/services/%s/https" $service) }}
+    {{ if or $hasHttp $hasHttps }}
 
-        location / {
-            proxy_pass http://backend_{{base $service}};
-            proxy_redirect off;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            {{ range gets (printf "/services/%s/tenants/%s/env/*" $service $tenant) }}
-            proxy_set_header {{base .Key}} "{{.Value}}";{{end}}
+        {{ if $hasHttp }}
+        upstream backend_{{ base $service }}_normal {
+            least_conn;{{range getvs (printf "/services/%s/http/*" $service)}}
+            server {{.}};{{end}}
         }
-    }
-    {{end}}{{ if ls (printf "/services/%s/https/certs" $service) }}
-    server {
-        listen 443 ssl;
-        {{ range getvs (printf "/services/%s/tenants/%s/domains/*" $service $tenant) }}
-        server_name {{.}};{{end}}
-        client_max_body_size 100M;
-        location / {
-            proxy_pass http://backend_{{base $service}};
-            proxy_ssl  on;
-            proxy_ssl_certificate        {{ getv (printf "/services/%s/https/certs/crt" $service) }};
-            proxy_ssl_certificate_key    {{ getv (printf "/services/%s/https/certs/key" $service) }};
-            proxy_ssl_protocols          SSLv3 TLSv1 TLSv1.1 TLSv1.2;
-            proxy_redirect off;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            {{ range gets (printf "/services/%s/tenants/%s/env/*" $service $tenant) }}
-            proxy_set_header {{base .Key}} "{{.Value}}";{{end}}
+        {{ end }}
+
+        {{ if $hasHttps }}
+        upstream backend_{{ base $service }}_secure {
+            least_conn;
+            {{ range getvs (printf "/services/%s/https/*" $service) }}
+            server {{.}};{{end}}
         }
-    }
-    {{end}}{{end}}
-{{end}}{{end}}
+        {{ end }}
+
+        {{ if ls (printf "/services/%s/http" $service) }}
+        server {
+            listen 80;
+            {{ range getvs (printf "/services/%s/domains/*" $service) }}
+            server_name {{.}};{{end}}
+
+            location / {
+                proxy_pass http://backend_{{base $service}}_normal;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Service-Name $service;
+            }
+        }
+        {{ end }}
+
+        {{ if ls (printf "/services/%s/https" $service) }}
+        server {
+            listen 443 ssl;
+
+            {{ range getvs (printf "/services/%s/domains/*" $service) }}
+            server_name {{.}};{{end}}
+            client_max_body_size 100M;
+
+            location / {
+                proxy_pass https://backend_{{base $service}}_secure;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Service-Name $service;
+            }
+        }
+        {{ end }}
+
+    {{ end }}
+{{ end }}
+
 server {
     listen 80 default_server;
     server_name  _;
