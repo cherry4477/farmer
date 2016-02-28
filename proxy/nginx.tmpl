@@ -23,7 +23,7 @@
             }
         }
 
-        {{ if ls (printf "/services/%s/ssl" $service) }}
+        {{ if exists (printf "/certs/%s/ssl.crt" $service) }}
         server {
             listen 443;
 
