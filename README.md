@@ -38,3 +38,4 @@ sudo iptables -A INPUT -p tcp --dport 2379 -j DROP
 * **Elasicsearch + Kibana** to provide logging service to containers.
 * **Domain Management** with etcd and registrator for your web containers.
 * **MySql Service Broker** for offering lightweight MySql contaienrs to all your projects.
+* **Poste.io** mail server.

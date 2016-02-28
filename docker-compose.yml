@@ -1,6 +1,7 @@
 data:
-  build: mysql/data
+  container_name: farmer_data
   restart: always
+  build: mysql/data
   volumes:
     - /etc/localtime:/etc/localtime:ro
     - /var/run/docker.sock:/tmp/docker.sock
@@ -15,8 +16,8 @@ data:
 
 mysql_api:
   container_name: farmer_mysql_api
-  build: mysql/api
   restart: always
+  build: mysql/api
   links:
     - mysql
   environment:
@@ -25,8 +26,8 @@ mysql_api:
 
 mysql:
   container_name: farmer_mysql_server
-  build: mysql
   restart: always
+  build: mysql
   environment:
     MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
     SERVICE_IGNORE: ignore
@@ -35,8 +36,8 @@ mysql:
 
 etcd:
   container_name: farmer_etcd_server
-  image: quay.io/coreos/etcd:v2.2.1
   restart: always
+  image: quay.io/coreos/etcd:v2.2.1
   ports:
     - 2379:2379
   command:
@@ -52,8 +53,8 @@ etcd:
 
 registrator:
   container_name: farmer_registrator
-  image: gliderlabs/registrator:v6
   restart: always
+  image: gliderlabs/registrator:v6
   command: -internal -ttl 11 -ttl-refresh 10 -resync 10 etcd://farmer_etcd_server:2379/services
   links:
     - etcd
@@ -80,8 +81,8 @@ proxy:
 
 browser:
   container_name: farmer_etcd_browser
-  image: buddho/etcd-browser
   restart: always
+  image: buddho/etcd-browser
   ports:
     - 8000:8000
   links:
@@ -92,9 +93,9 @@ browser:
     SERVICE_IGNORE: ignore
 
 toolbelt_daemon:
-  build: ./toolbelt_daemon
   container_name: farmer_toolbelt_daemon
   restart: always
+  build: ./toolbelt_daemon
   links:
     - etcd
   volumes_from:
@@ -103,9 +104,9 @@ toolbelt_daemon:
     SERVICE_IGNORE: ignore
 
 logger:
-  image: nshou/elasticsearch-kibana
-  restart: always
   container_name: farmer_logger
+  restart: always
+  image: nshou/elasticsearch-kibana
   environment:
     SERVICE_IGNORE: ignore
   ports:
@@ -114,13 +115,14 @@ logger:
     - data
 
 mailer:
+  container_name: farmer_mailer
+  restart: always
   image: analogic/poste.io
   volumes:
     - /etc/localtime:/etc/localtime:ro
     - /etc/farmer/mailer:/data
   environment:
     SERVICE_80_NAME: mailer/http
-    SERVICE_443_NAME: mailer/https
   ports:
     - 80
     - 443
