@@ -57,9 +57,9 @@
             location / {
                 {{ if $hasHttps }}
                 proxy_pass       https://backend_{{ base $service }}_https;
+                proxy_ssl_verify off;
                 {{ else }}{{ if $hasHttp }}
                 proxy_pass       http://backend_{{ base $service }}_http;
-                proxy_ssl_verify off;
                 {{ end }}{{ end }}
                 proxy_redirect   off;
                 proxy_set_header Host              $host;
