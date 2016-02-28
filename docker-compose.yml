@@ -9,8 +9,8 @@ data:
     - /etc/farmer/logger/elasticsearch:/var/lib/elasticsearch
     - /etc/farmer/etcd:/var/etcd/data
     - /etc/farmer/proxy/certs:/certs
-    - /etc/farmer/docker:/root/.docker
-    - /etc/farmer/gitkey:/root/.ssh
+    - /etc/farmer/common/docker:/root/.docker
+    - /etc/farmer/common/ssh:/root/.ssh
   environment:
     SERVICE_IGNORE: ignore
 
