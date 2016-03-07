@@ -39,7 +39,7 @@ etcd:
   restart: always
   image: quay.io/coreos/etcd:v2.2.1
   ports:
-    - 2379:2379
+    - "2379:2379"
   command:
     - -name=etcd
     - -data-dir=/var/etcd/data
@@ -70,8 +70,8 @@ proxy:
   links:
     - etcd
   ports:
-    - 80:80
-    - 443:443
+    - "80:80"
+    - "443:443"
   volumes_from:
     - data
   environment:
@@ -84,7 +84,7 @@ browser:
   restart: always
   image: buddho/etcd-browser
   ports:
-    - 8000:8000
+    - "8000:8000"
   links:
     - etcd
   environment:
@@ -110,7 +110,7 @@ logger:
   environment:
     SERVICE_IGNORE: ignore
   ports:
-    - 5601:5601
+    - "5601:5601"
   volumes_from:
     - data
 
@@ -127,10 +127,10 @@ mailer:
   ports:
     - 80
     - 443
-    - 25:25
-    - 465:465
-    - 110:110
-    - 143:143
-    - 587:587
-    - 993:993
-    - 995:995
+    - "25:25"
+    - "465:465"
+    - "110:110"
+    - "143:143"
+    - "587:587"
+    - "993:993"
+    - "995:995"
