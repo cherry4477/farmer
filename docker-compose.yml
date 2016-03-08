@@ -1,14 +1,9 @@
 data:
   container_name: farmer_data
   restart: always
-  build: mysql/data
+  build: data
   volumes:
     - /etc/localtime:/etc/localtime:ro
-    - /var/run/docker.sock:/tmp/docker.sock
-    - /etc/farmer/db:/var/lib/mysql
-    - /etc/farmer/logger/elasticsearch:/var/lib/elasticsearch
-    - /etc/farmer/etcd:/var/etcd/data
-    - /etc/farmer/proxy/certs:/certs
     - /etc/farmer/common/docker:/root/.docker
     - /etc/farmer/common/ssh:/root/.ssh
   environment:
@@ -33,6 +28,8 @@ mysql:
     SERVICE_IGNORE: ignore
   volumes_from:
     - data
+  volumes:
+    - /etc/farmer/db:/var/lib/mysql
 
 etcd:
   container_name: farmer_etcd_server
@@ -48,6 +45,8 @@ etcd:
     - --debug=true
   volumes_from:
     - data
+  volumes:
+    - /etc/farmer/etcd:/var/etcd/data
   environment:
     SERVICE_IGNORE: ignore
 
@@ -60,6 +59,8 @@ registrator:
     - etcd
   volumes_from:
     - data
+  volumes:
+    - /var/run/docker.sock:/tmp/docker.sock
   environment:
     SERVICE_IGNORE: ignore
 
@@ -74,10 +75,11 @@ proxy:
     - "443:443"
   volumes_from:
     - data
+  volumes:
+    - /etc/farmer/proxy/certs:/certs
   environment:
     ETCD_NODE: farmer_etcd_server:2379
     SERVICE_IGNORE: ignore
-    MAIN_DOMAIN: ravaj.ir
 
 browser:
   container_name: farmer_etcd_browser
@@ -113,13 +115,16 @@ logger:
     - "5601:5601"
   volumes_from:
     - data
+  volumes:
+    - /etc/farmer/logger/elasticsearch:/var/lib/elasticsearch
 
 mailer:
   container_name: farmer_mailer
   restart: always
   image: analogic/poste.io:20160223
+  volumes_from:
+    - data
   volumes:
-    - /etc/localtime:/etc/localtime:ro
     - /etc/farmer/mailer:/data
   environment:
     SERVICE_80_NAME: mailer/http
@@ -134,3 +139,19 @@ mailer:
     - "587:587"
     - "993:993"
     - "995:995"
+
+dns:
+  container_name: farmer_dns
+  restart: always
+  build: ./dns
+  environment:
+    SERVICE_IGNORE: ignore
+    HOST_EXTERNAL_IP: ${HOST_EXTERNAL_IP}
+    WEBMIN_ENABLED: 'false'
+  ports:
+    - "53:53/udp"
+  volumes_from:
+    - data
+  # THERE IS NO NEED TO PERSIST DNS DATA !YET!
+  # volumes:
+  #  - /etc/farmer/dns:/data

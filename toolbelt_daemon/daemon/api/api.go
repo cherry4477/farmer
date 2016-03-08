@@ -15,7 +15,7 @@ func Listen() {
 func registerRoutes(server *gin.Engine) {
 	podRoute := server.Group("/pod")
 	{
-		podRoute.POST("/create", Create)
-		podRoute.GET("/state/:pod", State)
+		podRoute.POST("/create", PodCreate)
+		podRoute.GET("/state/:pod", PodState)
 	}
 }

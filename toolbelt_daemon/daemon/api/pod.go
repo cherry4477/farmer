@@ -8,7 +8,7 @@ import (
 	"github.com/ravaj-group/farmer/toolbelt_daemon/daemon/toolbelt"
 )
 
-func Create(context *gin.Context) {
+func PodCreate(context *gin.Context) {
 	var json request.CreateRequest
 	if err := context.BindJSON(&json); err != nil {
 		context.String(http.StatusInternalServerError, err.Error())
@@ -25,7 +25,7 @@ func Create(context *gin.Context) {
 	context.String(http.StatusAccepted, "")
 }
 
-func State(context *gin.Context) {
+func PodState(context *gin.Context) {
 	podName := context.Param("pod")
 	if podName == "" {
 		context.String(http.StatusBadRequest, "Pod name is not defined!")
