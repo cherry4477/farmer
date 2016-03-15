@@ -37,7 +37,7 @@ func CreateDatabase(dbName string) error {
 }
 
 func CreateUser(dbName string, username string, password string) error {
-	if _, err := DB.Exec("GRANT ALL ON " + dbName + ".* TO '" + username  + "'@'%' IDENTIFIED BY '" + password + "'"); err != nil {
+	if _, err := DB.Exec("GRANT ALL ON `" + dbName + "`.* TO '" + username  + "'@'%' IDENTIFIED BY '" + password + "'"); err != nil {
 		return err
 	}
 

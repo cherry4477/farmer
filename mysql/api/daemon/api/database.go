@@ -23,7 +23,7 @@ func Create(req request.DbRequest) (int, string) {
 	}
 
 	username := newUsername();
-    password := randStringBytesMaskImprSrc(12);
+	password := randStringBytesMaskImprSrc(12);
 
 	if err := db.CreateDatabase(req.Database); err != nil {
 		return 500, err.Error()
@@ -45,6 +45,7 @@ func Create(req request.DbRequest) (int, string) {
 func randStringBytesMaskImprSrc(n int) string {
 	src := rand.NewSource(time.Now().UnixNano())
 	b := make([]byte, n)
+
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
 	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
