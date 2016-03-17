@@ -1,0 +1,2 @@
+{{ range $service := lsdir "/services" }}{{ range getvs (printf "/services/%s/domains/*" $service) }}{{.}}: {{ $service }}
+{{ end }}{{ end }}

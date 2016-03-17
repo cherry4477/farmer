@@ -121,24 +121,18 @@ logger:
 mailer:
   container_name: farmer_mailer
   restart: always
-  image: analogic/poste.io:20160223
+  build: mailer
+  links:
+    - etcd
+  environment:
+    ETCD_NODE: farmer_etcd_server:2379
   volumes_from:
     - data
   volumes:
     - /etc/farmer/mailer:/data
-  environment:
-    SERVICE_80_NAME: mailer/http
-    SERVICE_443_NAME: mailer/https
   ports:
-    - 80
-    - 443
     - "25:25"
     - "465:465"
-    - "110:110"
-    - "143:143"
-    - "587:587"
-    - "993:993"
-    - "995:995"
 
 dns:
   container_name: farmer_dns

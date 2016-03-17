@@ -1,0 +1,8 @@
+[template]
+src         = "forwards.tmpl"
+dest        = "/data/forwards.txt"
+keys        = ["services"]
+owner       = "exim"
+mode        = "0644"
+check_cmd   = "exim -C /etc/exim4/exim4.conf -bV"
+reload_cmd  = "kill -HUP 1"

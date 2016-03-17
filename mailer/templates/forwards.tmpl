@@ -1,0 +1,2 @@
+{{ range $service := lsdir "/services" }}{{ range gets (printf "/services/%s/forwards/*" $service) }}{{ base .Key}}: {{.Value}}
+{{ end }}{{ end }}
